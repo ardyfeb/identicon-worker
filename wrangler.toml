@@ -1,0 +1,21 @@
+name = "identicon-server"
+type = "javascript"
+workers_dev = true
+compatibility_date = "2021-10-25"
+compatibility_flags = [ "formdata_parser_supports_files" ]
+
+[vars]
+WORKERS_RS_VERSION = "0.0.6"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"
+
+[build.upload]
+dir    = "build/worker"
+format = "modules"
+main   = "./shim.mjs"
+
+[[build.upload.rules]]
+globs = ["**/*.wasm"]
+type  = "CompiledWasm"
+
