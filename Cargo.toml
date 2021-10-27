@@ -3,6 +3,9 @@ name = "identicon-server"
 version = "0.1.0"
 authors = ["Ardy Febriansyah <ardyfeb02@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/ardyfeb/identicon-worker"
+description = "Identicon generator worker"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
