@@ -57,8 +57,29 @@ fn parse_query(raw: &str) -> std::result::Result<OptionsQuery, Error> {
     serde_qs::from_str(raw)
 }
 
+const CORS_HEADERS: [(&str, &str); 2] = [
+    ("Access-Control-Allow-Origin",  "*"), 
+    ("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS")
+];
+
+const GUIDE_TEXT: &str = r#"
+Identicon generator
+---
+
+Options:
+    - hash: random string for generating identicon (required)
+    - scale: pattern scale <number> (default: 500)
+    - size: pattern seed size, should not larger than scale <number> (default: 5)
+    - border: edge border <number> (default: 50)
+    - format: image format <png/jpeg> (default: png)
+
+Example: https://ic.ardyfeb.me/?hash=magic&format=png
+
+Repository: https://github.com/ardyfeb/identicon-worker
+"#;
+
 #[event(fetch)]
-pub async fn main(req: Request, env: Env) -> Result<Response> {
+pub async fn main(req: Request, _env: Env) -> Result<Response> {
     log_request(&req);
     set_panic_hook();
 
@@ -76,8 +97,14 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
     match parse_query(query) {
         Ok(params) => {
-            if params.hash.is_empty() || params.size > params.scale {
-                return Response::error("Un-processable Entity", 422)
+            if params.hash.is_empty() {
+                return Response::ok(GUIDE_TEXT);
+            }
+
+            if params.size > params.scale {
+                return Response::error(
+                    "Un-processable Entity: size should not larger than scale", 422
+                );
             }
 
             let mut icon = Identicon::new(&params.hash);
@@ -94,9 +121,14 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
                 OptionsFormat::JPG => (icon.export_jpeg_data(), "image/jpeg")
             };
             let mut headers = Headers::new();
-            
-            headers.set("Content-type", mime);
-            headers.set("Cache-Control", "public,max-age=36000");
+
+            headers.set("Content-type", mime).unwrap();
+            headers.set("Cache-Control", "public,max-age=36000").unwrap();
+
+            // apply cors headers
+            for (key, value) in CORS_HEADERS {
+                headers.set(key, value).unwrap();
+            }
 
             Ok(Response::from_bytes(buff.unwrap())?.with_headers(headers))
         },
