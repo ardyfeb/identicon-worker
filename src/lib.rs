@@ -117,7 +117,7 @@ pub async fn main(req: Request, _env: Env) -> Result<Response> {
             icon = icon.background_color((240, 240, 240));
 
             let (buff, mime) = match params.format {
-                OptionsFormat::PNG => (icon.export_jpeg_data(), "image/png"),
+                OptionsFormat::PNG => (icon.export_png_data(), "image/png"),
                 OptionsFormat::JPG => (icon.export_jpeg_data(), "image/jpeg")
             };
             let mut headers = Headers::new();
